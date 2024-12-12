@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer App</title>
+    <script>
+        let interval;
+
+        function startTimer() {
+            const hours = parseInt(document.getElementById('hours').value) || 0;
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            const seconds = parseInt(document.getElementById('seconds').value) || 0;
+            const duration = (hours * 3600) + (minutes * 60) + seconds;
+            const timerId = 'myTimer';
+
+            fetch('/start-timer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({duration: duration, timer_id: timerId})
+            }).then(response => response.json())
+            .then(data => {
+                if (data.message === 'Timer started') {
+                    updateTimerStatus();
+                    interval = setInterval(updateTimerStatus, 1000);
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function stopTimer() {
+            const timerId = 'myTimer';
+            fetch('/stop-timer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({timer_id: timerId})
+            }).then(response => response.json())
+            .then(data => {
+                clearInterval(interval);
+                alert(data.message);
+                document.getElementById('timer').innerText = 'Timer stopped';
+            });
+        }
+
+        function updateTimerStatus() {
+            fetch('/get-timer-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_running) {
+                    const timeLeft = data.time_left;
+                    const hours = Math.floor(timeLeft / 3600);
+                    const minutes = Math.floor((timeLeft % 3600) / 60);
+                    const seconds = Math.floor(timeLeft % 60);
+
+                    document.getElementById('timer').innerText = `Time left: ${hours}h ${minutes}m ${seconds}s`;
+                } else {
+                    document.getElementById('timer').innerText = 'Time ended or stopped';
+                    clearInterval(interval);
+                }
+            });
+        }
+
+        window.onload = function() {
+            updateTimerStatus();
+            interval = setInterval(updateTimerStatus, 1000);
+        }
+    </script>
+</head>
+<body>
+    <h1>Timer App</h1>
+    <input type="number" id="hours" placeholder="Hours">
+    <input type="number" id="minutes" placeholder="Minutes">
+    <input type="number" id="seconds" placeholder="Seconds">
+    <button onclick="startTimer()">Start Timer</button>
+    <button onclick="stopTimer()">Stop Timer</button>
+    <div id="timer">Timer not started</div>
+</body>
+</html>
