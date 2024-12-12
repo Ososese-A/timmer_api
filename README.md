@@ -1,0 +1,1 @@
+The idea behind this timmer API was to develop a simple API which anyone can use to set up a timer the runners independently from the frontend, meaning even after refreshing the frontend the timmer continues and does not start from counting down from the beginning.
